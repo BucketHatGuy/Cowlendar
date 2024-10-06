@@ -1,12 +1,17 @@
 package roboticsattendance;
 
 import java.awt.Color;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.LocalTime;
+import java.time.Duration;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -27,18 +32,30 @@ public class Cowlendar extends ListenerAdapter {
 
     @Override
     public void onSlashCommandInteraction(@Nonnull SlashCommandInteractionEvent event){
+        // event variables
         String command = event.getName();
         String username = event.getUser().getName();
-        ArrayList<String> divisionArray;
+        ArrayList<String> memberDivisionsArray;
         HashSet<String> updatedDatesSet = getMemberDates(getMemberDivisions(username));
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM_dd_yy");  
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM_dd_yy");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mma");
         LocalDate currentDate = LocalDate.now();
         String message = "";
         OptionMapping option1;
         OptionMapping option2;
+        OptionMapping option3;
         EmbedBuilder embed = new EmbedBuilder();
 
-        divisionArray = getMemberDivisions(username);
+        // common variable names used in the switch case
+        String date = "";
+        String time = "";
+        int divisionsAccountedFor = 0;
+        boolean formatError = false;
+        String member = "";
+        ArrayList<String> variableDivisionsArray;
+        String division;
+
+        memberDivisionsArray = getMemberDivisions(username);
 
         event.deferReply().queue();
 
@@ -47,111 +64,219 @@ public class Cowlendar extends ListenerAdapter {
             embed.setColor(Color.RED);
         } else {
             switch (command) {
-                case "log_meet":
-                    String attemptedDate;
-                    int divisionsLoggedInFor;
-                    String day;
-
+                case "login":
                     option1 = event.getOption("date");
-                    day = option1 != null ? option1.getAsString() : "";
+                    date = option1 != null ? option1.getAsString() : "";
 
-                    attemptedDate = !(day == "") ? day : currentDate.format(formatter).toString();
-                    divisionsLoggedInFor = 0;
+                    option2 = event.getOption("time");
+                    time = option2 != null ? option2.getAsString() : "";
 
-                    System.out.println("attemptedDate is: " + attemptedDate);
-                    System.out.println(updatedDatesSet.contains(attemptedDate));
+                    date = date != "" ? date : currentDate.format(dateFormatter).toString();
+                    divisionsAccountedFor = 0;
 
-                    if(updatedDatesSet.contains(attemptedDate)){
-                        for (String division : divisionArray) {
-                            try {
-                                statement.executeUpdate("UPDATE " + division + " SET " + attemptedDate + " = 1 WHERE memberName='" + username + "';");
-                                divisionsLoggedInFor++;
-                            } catch (Exception e) {
-                                continue;
-                            }
-                        }
-    
-                        if(divisionsLoggedInFor == 0){
-                            message = "Error: Unknown. If this persists, contact Jose probably lol.";
-                            embed.setColor(Color.RED);
-                        } else {
-                            message = "Success! You have logged in for the meeting on " + attemptedDate;
-                            embed.setColor(Color.GREEN);
-                        }
+                    try {
+                        date = getFormattedDate(date);
+                    } catch (Exception e) {
+                        e.printStackTrace();
 
-                    } else {
-                        message = "Error: Invalid date. Check the date you entered and try again.";
+                        message = "Error: Invalid date format. Check the date you entered and try again.";
                         embed.setColor(Color.RED);
+                        formatError = true;
+                    }
+
+                    try {
+                        time = getFormattedTime(time);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+
+                        message = "Error: Invalid time format. Check the time you entered and try again.";
+                        embed.setColor(Color.RED);
+                        formatError = true;
+                    }
+
+                    if(!formatError){
+                        if((currentDate.format(dateFormatter).toString()).equals(date)){
+                            if(updatedDatesSet.contains(date)){
+                                for (String divisionInArray : memberDivisionsArray) {
+                                    try {
+                                        statement.executeUpdate("UPDATE " + divisionInArray + " SET " + date + " = '" + time +"' WHERE memberName='" + username + "';");
+                                        divisionsAccountedFor++;
+                                    } catch (Exception e) {
+                                        continue;
+                                    }
+                                }
+            
+                                if(divisionsAccountedFor == 0){
+                                    message = "Error: Unknown. If this persists, contact Jose probably lol.";
+                                    embed.setColor(Color.RED);
+                                } else {
+                                    message = "Success! You have logged in for the meeting on " + date;
+                                    embed.setColor(Color.GREEN);
+                                }
+
+                            } else {
+                                message = "Error: Invalid date. Check the date you entered and try again.";
+                                embed.setColor(Color.RED);
+                            }
+                        } else {
+                            event.getChannel().sendMessage("<@330057747469172737> " + username + " has requested an attendance correction.").queue();
+                            message = "Date = " + date + " \nTime = " + time;
+                            embed.setColor(Color.YELLOW);
+                        }
                     }
                 break;
 
-                case "log_other":
-                    String realDate;
-                    String notRealDate;
-
+                case "impersonate":
                     option1 = event.getOption("date");
-                    notRealDate = option1 != null ? option1.getAsString() : "";
+                    date = option1 != null ? option1.getAsString() : "";
 
-                    realDate = !(notRealDate == "") ? notRealDate : currentDate.format(formatter).toString();
+                    option2 = event.getOption("time");
+                    time = option2 != null ? option2.getAsString() : "";
 
-                    System.out.println("attemptedDate is: " + realDate);
+                    option3 = event.getOption("member");
+                    member = option3 != null ? option3.getAsString() : "";
 
-                    if((getDivisionDates("other")).contains(realDate)){
-                        try {
-                            statement.executeUpdate("UPDATE other SET " + realDate + " = 1 WHERE memberName='" + username + "';");
-                            message = "Success! You have logged for the event on " + realDate;
-                            embed.setColor(Color.GREEN);
-                        } catch (Exception e) {
-                            message = "Error: Unknown. If this persists, contact Jose probably lol.";
-                            embed.setColor(Color.RED);
-                            e.printStackTrace();
-                        }
-                    } else {
-                        message = "Error: Invalid date. Check the date you entered and try again.";
+                    date = date != "" ? date : currentDate.format(dateFormatter).toString();
+                    divisionsAccountedFor = 0;
+
+                    try {
+                        date = getFormattedDate(date);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+
+                        message = "Error: Invalid date format. Check the date you entered and try again.";
                         embed.setColor(Color.RED);
+                        formatError = true;
                     }
+
+                    try {
+                        time = getFormattedTime(time);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+
+                        message = "Error: Invalid time format. Check the time you entered and try again.";
+                        embed.setColor(Color.RED);
+                        formatError = true;
+                    }
+
+                    if(!getMembers().contains(member)){
+                        message = "Error: Member is not in the database. Check the member you entered and try again.";
+                        embed.setColor(Color.RED);
+                        formatError = true;
+                    } else {
+                        memberDivisionsArray = getMemberDivisions(member);
+                    }
+
+                    if(!formatError){
+                        if(updatedDatesSet.contains(date)){
+                            for (String divisionInArray : memberDivisionsArray) {
+                                try {
+                                    statement.executeUpdate("UPDATE " + divisionInArray + " SET " + date + " = '" + time +"' WHERE memberName='" + member + "';");
+                                    divisionsAccountedFor++;
+                                } catch (Exception e) {
+                                    continue;
+                                }
+                            }
+            
+                            if(divisionsAccountedFor == 0){
+                                message = "Error: Unknown. If this persists, contact Jose probably lol.";
+                                embed.setColor(Color.RED);
+                            } else {
+                                message = "Success! You have logged in as \"" + member + "\" for the meet on " + date;
+                                embed.setColor(Color.GREEN);
+                            }
+
+                        } else {
+                            message = "Error: Invalid date. Check the date you entered and try again.";
+                            embed.setColor(Color.RED);
+                        }
+                    }
+                    
                 break;
 
                 case "percent":
                     ArrayList<Double> attendanceArray = new ArrayList<>();
+                    ArrayList<String> divisionDatesArray = new ArrayList<>();
                     Double totalNumber = 0.0;
-                    int dateCheck = 0;
-                    String attemptedMember;
+
+                    String[] studentTimeList;
+                    String[] meetTimeList;
+                    LocalTime studentBeginTime;
+                    LocalTime studentEndTime;
+                    LocalTime meetBeginTime;
+                    LocalTime meetEndTime;
+                    double studentDuration;
+                    double meetDuration;
 
                     option1 = event.getOption("member");
-                    attemptedMember = option1 != null ? option1.getAsString() : "";
+                    member = option1 != null ? option1.getAsString() : "";
 
-                    if(!(attemptedMember == "")){
+                    option2 = event.getOption("division");
+                    division = option2 != null ? option2.getAsString() : "";
+
+                    if(member != ""){
                         if((getAdmins()).contains(username)){
-                            if((getMembers()).contains(attemptedMember)){
-                                for (String date : updatedDatesSet) {
-                                    for (String division : divisionArray) {
-                                        try {
-                                            resultSet = statement.executeQuery("select " + date + " from " + division + " where memberName = '" + attemptedMember + "';");
+                            if((getMembers()).contains(member)){
+                                if(getMemberDivisions(member).contains(division)){
+                                    divisionDatesArray = getDivisionDates(division);
+
+                                    for (String dateInArray : divisionDatesArray) {
+                                        try{
+                                            resultSet = statement.executeQuery("SELECT " + dateInArray + " FROM " + division + " WHERE memberName = '" + member + "';");
                                             resultSet.next();
-                                            dateCheck = resultSet.getInt(date);
+
+                                            studentTimeList = (resultSet.getString(dateInArray)).split("-");
+
+                                            System.out.println(studentTimeList[0]);
+                                            System.out.println(studentTimeList[1]);
+
+                                            studentBeginTime = LocalTime.parse(studentTimeList[0].toUpperCase().replaceAll("\\s", ""), timeFormatter);
+                                            studentEndTime = LocalTime.parse(studentTimeList[1].toUpperCase().replaceAll("\\s", ""), timeFormatter);
+
+                                            System.out.println(studentBeginTime);
+                                            System.out.println(studentEndTime);
+
+                                            resultSet = statement.executeQuery("SELECT " + dateInArray + " FROM " + division + " WHERE memberName = 'time';");
+                                            resultSet.next();
+
+                                            meetTimeList = (resultSet.getString(dateInArray)).split("-");
+
+                                            meetBeginTime = LocalTime.parse(meetTimeList[0].toUpperCase().replaceAll("\\s", ""), timeFormatter);
+                                            meetEndTime = LocalTime.parse(meetTimeList[1].toUpperCase().replaceAll("\\s", ""), timeFormatter);
+
+                                            studentBeginTime = studentBeginTime.isBefore(meetBeginTime) ? meetBeginTime : studentBeginTime;
+                                            studentEndTime = studentEndTime.isAfter(meetEndTime) ? meetEndTime : studentEndTime;
+
+                                            if(!(((studentBeginTime.isAfter(meetEndTime)) && !studentBeginTime.equals(meetEndTime)) || (studentEndTime.isBefore(meetBeginTime) && !studentEndTime.equals(meetBeginTime)))){
+                                                studentDuration = (Duration.between(studentBeginTime, studentEndTime).toMinutes());
+                                                meetDuration = Duration.between(meetBeginTime, meetEndTime).toMinutes();
+
+                                                attendanceArray.add(Math.round((studentDuration/meetDuration) * 4) / 4.0);
+                                            } else {
+                                                System.out.println("We're here!");
+
+                                                attendanceArray.add(0.0);
+                                            }
+
                                         } catch (Exception e) {
-                                            // null check. if it errors here, almost all of the time it's because the value it returns is null.
-                                            dateCheck = 0;
-                                        }
-            
-                                        if(dateCheck == 1){
-                                            attendanceArray.add(1.0);
-                                            break;
-                                        }
-            
-                                        if(division == divisionArray.getLast()){
+                                            e.printStackTrace();
+
                                             attendanceArray.add(0.0);
-                                            break;
                                         }
                                     }
-                                }
-                                for(Double value : attendanceArray){
-                                    totalNumber += value;
-                                }
 
-                                message = attemptedMember + "'s attendance rate is: " + Math.round((totalNumber / attendanceArray.size()) * 100) + "%";
-                                embed.setColor(Color.LIGHT_GRAY);
+                                    System.out.println(attendanceArray);
+
+                                    for(Double value : attendanceArray){
+                                        totalNumber += value;
+                                    }
+
+                                    message = member + "'s attendance rate is: " + Math.round((totalNumber / attendanceArray.size()) * 100) + "%";
+                                    embed.setColor(Color.LIGHT_GRAY);
+                                } else {
+                                    message = "Error: Member isn't on that division. Please check the spelling and try again";
+                                    embed.setColor(Color.RED);
+                                }
                             } else {
                                 message = "Error: Member not found. Please check the spelling and try again";
                                 embed.setColor(Color.RED);
@@ -160,50 +285,80 @@ public class Cowlendar extends ListenerAdapter {
                             message = "Error: Permission denied. Only admins are allowed to check other member's attendance rates.";
                             embed.setColor(Color.RED);
                         }
+
                     } else {
-                        for (String date : updatedDatesSet) {
-                            for (String division : divisionArray) {
-                                try {
-                                    resultSet = statement.executeQuery("select " + date + " from " + division + " where memberName = '" + username + "';");
+                        if(getMemberDivisions(username).contains(division)){
+                            divisionDatesArray = getDivisionDates(division);
+
+                            for (String dateInArray : divisionDatesArray) {
+                                try{
+                                    resultSet = statement.executeQuery("SELECT " + dateInArray + " FROM " + division + " WHERE memberName = '" + username + "';");
                                     resultSet.next();
-                                    dateCheck = resultSet.getInt(date);
+
+                                    studentTimeList = (resultSet.getString(dateInArray)).split("-");
+
+                                    System.out.println(studentTimeList[0]);
+                                    System.out.println(studentTimeList[1]);
+
+                                    studentBeginTime = LocalTime.parse(studentTimeList[0].toUpperCase().replaceAll("\\s", ""), timeFormatter);
+                                    studentEndTime = LocalTime.parse(studentTimeList[1].toUpperCase().replaceAll("\\s", ""), timeFormatter);
+
+                                    System.out.println(studentBeginTime);
+                                    System.out.println(studentEndTime);
+
+                                    resultSet = statement.executeQuery("SELECT " + dateInArray + " FROM " + division + " WHERE memberName = 'time';");
+                                    resultSet.next();
+
+                                    meetTimeList = (resultSet.getString(dateInArray)).split("-");
+
+                                    meetBeginTime = LocalTime.parse(meetTimeList[0].toUpperCase().replaceAll("\\s", ""), timeFormatter);
+                                    meetEndTime = LocalTime.parse(meetTimeList[1].toUpperCase().replaceAll("\\s", ""), timeFormatter);
+
+                                    studentBeginTime = studentBeginTime.isBefore(meetBeginTime) ? meetBeginTime : studentBeginTime;
+                                    studentEndTime = studentEndTime.isAfter(meetEndTime) ? meetEndTime : studentEndTime;
+
+                                    if(!(((studentBeginTime.isAfter(meetEndTime)) && !studentBeginTime.equals(meetEndTime)) || (studentEndTime.isBefore(meetBeginTime) && !studentEndTime.equals(meetBeginTime)))){
+                                        studentDuration = (Duration.between(studentBeginTime, studentEndTime).toMinutes());
+                                        meetDuration = Duration.between(meetBeginTime, meetEndTime).toMinutes();
+
+                                        attendanceArray.add(Math.round((studentDuration/meetDuration) * 4) / 4.0);
+                                    } else {
+                                        attendanceArray.add(0.0);
+                                    }
+
                                 } catch (Exception e) {
-                                    // null check. if it errors here, almost all of the time it's because the value it returns is null.
-                                    dateCheck = 0;
-                                }
-    
-                                if(dateCheck == 1){
-                                    attendanceArray.add(1.0);
-                                    break;
-                                }
-    
-                                if(division == divisionArray.getLast()){
+                                    e.printStackTrace();
+
                                     attendanceArray.add(0.0);
-                                    break;
                                 }
                             }
-                        }
-                        for(Double value : attendanceArray){
-                            totalNumber += value;
-                        }
 
-                        message = "Your attendance rate is: " + Math.round((totalNumber / attendanceArray.size()) * 100) + "%";
-                        embed.setColor(Color.LIGHT_GRAY);
+                            System.out.println(attendanceArray);
+
+                            for(Double value : attendanceArray){
+                                totalNumber += value;
+                            }
+
+                            message = "Your attendance rate is: " + Math.round((totalNumber / attendanceArray.size()) * 100) + "%";
+                            embed.setColor(Color.LIGHT_GRAY);
+                        } else {
+                            message = "Error: Member isn't on that division. Please check the spelling and try again";
+                            embed.setColor(Color.RED);
+                        }
                     }
 
                     break;
 
                 case "get_dates":
                     ArrayList<String> datesArray = new ArrayList<>();
-                    String attemptedDivision;
 
                     option1 = event.getOption("division");
-                    attemptedDivision = option1 != null ? option1.getAsString() : "";
+                    division = option1 != null ? option1.getAsString() : "";
 
-                    datesArray = getDivisionDates(attemptedDivision);
+                    datesArray = getDivisionDates(division);
 
                     if(!(datesArray.isEmpty())){
-                        message = "The following dates are on " + attemptedDivision + ": ";
+                        message = "The following dates are on " + division + ": ";
                         embed.setDescription(datesArray.toString());
                         embed.setColor(Color.LIGHT_GRAY);
                     } else {
@@ -227,51 +382,47 @@ public class Cowlendar extends ListenerAdapter {
 
                 case "resolve":
                     if((getAdmins()).contains(username)){
-                        int divisionsResolvedFor = 0;
-                        String date = "";
-                        String member = "";
-                        boolean isOther = false;
+                        formatError = false;
 
                         option1 = event.getOption("date");
                         option2 = event.getOption("member");
-                        OptionMapping option3 = event.getOption("other");
 
                         date = option1 != null ? option1.getAsString() : "";
                         member = option2 != null ? option2.getAsString() : "";
-                        isOther = option3 != null ? option3.getAsBoolean() : false;
 
-                        if(!isOther){
+                        try {
+                            date = getFormattedDate(date);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+    
+                            message = "Error: Invalid date format. Check the date you entered and try again.";
+                            embed.setColor(Color.RED);
+                            formatError = true;
+                        }
+
+                        if(!getMembers().contains(member)){
+                            message = "Error: Member not found. Check the member you entered and try again.";
+                            embed.setColor(Color.RED);
+                            formatError = true;
+                        }
+
+                        if(!formatError){
                             if(updatedDatesSet.contains(date)){
-                                for (String division : divisionArray) {
+                                for (String divisionInArray : memberDivisionsArray) {
                                     try {
-                                        statement.executeUpdate("UPDATE " + division + " SET " + date + " = 0 WHERE memberName='" + member + "';");
-                                        divisionsResolvedFor++;
+                                        statement.executeUpdate("UPDATE " + divisionInArray + " SET " + date + " = null WHERE memberName='" + member + "';");
+                                        divisionsAccountedFor++;
                                     } catch (Exception e) {
                                         continue;
                                     }
                                 }
-        
-                                if(divisionsResolvedFor == 0){
+            
+                                if(divisionsAccountedFor == 0){
                                     message = "Error: Unknown. If this persists, contact Jose probably lol.";
                                     embed.setColor(Color.RED);
                                 } else {
                                     message = "Success! " + member + "'s attendance has been resolved for " + date;
                                     embed.setColor(Color.GREEN);
-                                }
-                            } else {
-                                message = "Error: Invalid date. Please check the format (MM_DD_YY) and try again.";
-                                embed.setColor(Color.RED);
-                            }
-                        } else {
-                            if(getDivisionDates("other").contains(date)){
-                                try {
-                                    statement.executeUpdate("UPDATE " + "other" + " SET " + date + " = 0 WHERE memberName='" + member + "';");
-                                    message = "Success! " + member + "'s attendance has been resolved for " + date;
-                                    embed.setColor(Color.GREEN);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                    message = "Error: Unknown. If this persists, contact Jose probably lol.";
-                                    embed.setColor(Color.RED);
                                 }
                             } else {
                                 message = "Error: Invalid date. Please check the format (MM_DD_YY) and try again.";
@@ -287,24 +438,29 @@ public class Cowlendar extends ListenerAdapter {
 
                 case "add_date":
                     if((getAdmins()).contains(username)){
-                        String date;
-                        String division;
+                        String timeFrame;
 
                         option1 = event.getOption("date");
                         option2 = event.getOption("division");
+                        option3 = event.getOption("time");
 
                         date = option1 != null ? option1.getAsString() : "";
                         division = option2 != null ? option2.getAsString() : "";
+                        timeFrame = option3 != null ? option3.getAsString() : "";
 
-                            try {
-                                statement.executeUpdate("ALTER TABLE " + division + " ADD " + date + " tinyint(1);");
-                                message = "Success! " + date + " has been added to " + division;
-                                embed.setColor(Color.GREEN);
-                            } catch (Exception e) {
-                                message = "Error: Unable to add date. Please try again and make sure the command is in the right format. \n";
-                                embed.setColor(Color.RED);
-                                e.printStackTrace();
-                            }
+                        try {
+                            date = getFormattedDate(date);
+                            timeFrame = getFormattedTime(timeFrame);
+
+                            statement.executeUpdate("ALTER TABLE " + division + " ADD " + date + " varchar(50);");
+                            statement.executeUpdate("UPDATE " + division + " SET " + date + " = '" + timeFrame + "' WHERE memberName='time';");
+                            message = "Success! " + date + " has been added to " + division;
+                            embed.setColor(Color.GREEN);
+                        } catch (Exception e) {
+                            message = "Error: Unable to add date. Please try again and make sure the command is in the right format.";
+                            embed.setColor(Color.RED);
+                            e.printStackTrace();
+                        }
                     } else {
                         message = "Error: Permission denied. Please contact a mentor to change dates.";
                         embed.setColor(Color.RED);
@@ -314,30 +470,31 @@ public class Cowlendar extends ListenerAdapter {
 
                 case "remove_date":
                     if((getAdmins()).contains(username)){
-                        String date;
-                        String division;
-
                         option1 = event.getOption("date");
                         option2 = event.getOption("division");
 
                         date = option1 != null ? option1.getAsString() : "";
                         division = option2 != null ? option2.getAsString() : "";
 
+                        try {
+                            date = getFormattedDate(date);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
                         if((getAllDivisions()).contains(division) && getDivisionDates(division).contains(date)){
                             try {
-                                statement.executeUpdate("SET SQL_SAFE_UPDATES = 0;");
                                 statement.executeUpdate("ALTER TABLE " + division + " DROP COLUMN " +  date);
-                                statement.executeUpdate("SET SQL_SAFE_UPDATES = 1;");
 
                                 message = "Success! " + date + " has been removed from " + division;
                                 embed.setColor(Color.GREEN);
                             } catch (Exception e) {
-                                message = "Error: Unknown. Please try again. \n";
+                                message = "Error: Unable to add date. Please try again and make sure the command is in the right format.";
                                 embed.setColor(Color.RED);
                                 e.printStackTrace();
                             }
                         } else {
-                            message = "Error: Unable to remove date. Please check the format of the command and try again.";
+                            message = "Error: Format error. Please check your spelling of the command and try again.";
                             embed.setColor(Color.RED);
                         }
                     } else {
@@ -350,30 +507,27 @@ public class Cowlendar extends ListenerAdapter {
                 case "add_member":
                     if((getAdmins()).contains(username)){
                         ArrayList<String> unaffectedDivisions = new ArrayList<>();
-                        ArrayList<String> divisionsArray;
-                        String member;
-                        String divisions;
+                        String divisionsString;
 
                         option1 = event.getOption("member");
                         option2 = event.getOption("divisions");
 
                         member = option1 != null ? option1.getAsString() : "nothing";
-                        divisions = option2 != null ? option2.getAsString() : "nothing";
+                        divisionsString = option2 != null ? option2.getAsString() : "nothing";
     
                         // splits list into the seperate divisions
-                        divisionsArray = new ArrayList<>(Arrays.asList(divisions.split(" ")));
-                        divisionsArray.add(0, "allteam");
-                        divisionsArray.add(0, "other");
+                        variableDivisionsArray = new ArrayList<>(Arrays.asList(divisionsString.split(" ")));
+                        variableDivisionsArray.add(0, "allteam");
 
-                        System.out.println(divisionsArray.toString());
-                        divisionsArray.remove("nothing");
-                        System.out.println(divisionsArray.toString());
+                        System.out.println(variableDivisionsArray.toString());
+                        variableDivisionsArray.remove("nothing");
+                        System.out.println(variableDivisionsArray.toString());
                         
-                        for (String division : divisionsArray) {
+                        for (String divisionInArray : variableDivisionsArray) {
                             try {
-                                statement.executeUpdate("INSERT INTO " + division +" (memberName) VALUES (\"" + member + "\");");
+                                statement.executeUpdate("INSERT INTO " + divisionInArray +" (memberName) VALUES (\"" + member + "\");");
                             } catch (Exception e) {
-                                unaffectedDivisions.add(division);
+                                unaffectedDivisions.add(divisionInArray);
                             }
                         }
     
@@ -393,28 +547,15 @@ public class Cowlendar extends ListenerAdapter {
 
                 case "remove_member":
                     if((getAdmins()).contains(username)){
-                        ArrayList<String> divisions = new ArrayList<>();
-                        String member;
-                        int rowsAffected = 0;
-
                         option1 = event.getOption("member");
                         member = option1 != null ? option1.getAsString() : "";
     
-                        divisions = getMemberDivisions(member);
-                        divisions.add("other");
+                        variableDivisionsArray = getMemberDivisions(member);
 
                         if((getMembers()).contains(member)){
-                            for(String division : divisions){
+                            for(String divisionInArray : variableDivisionsArray){
                                 try {
-                                    statement.executeUpdate("SET SQL_SAFE_UPDATES = 0;");
-
-                                    statement.executeUpdate("DELETE FROM " + division + " WHERE memberName=\"" + member + "\"");
-
-                                    resultSet = statement.executeQuery("SELECT ROW_COUNT();");
-                                    resultSet.next();
-                                    rowsAffected = (resultSet.getInt("ROW_COUNT()"));
-
-                                    statement.executeUpdate("SET SQL_SAFE_UPDATES = 1;");
+                                    statement.executeUpdate("DELETE FROM " + divisionInArray + " WHERE memberName=\"" + member + "\"");
 
                                     message = "Success! " + member + " has been removed from the datebase";
                                     embed.setColor(Color.GREEN);
@@ -436,9 +577,6 @@ public class Cowlendar extends ListenerAdapter {
 
                 case "add_div":
                     if((getAdmins()).contains(username)){
-                        String member;
-                        String division;
-
                         option1 = event.getOption("member");
                         option2 = event.getOption("division");
 
@@ -468,8 +606,6 @@ public class Cowlendar extends ListenerAdapter {
     
                 case "remove_div":
                     if((getAdmins()).contains(username)){
-                        String member;
-                        String division;
                         int rowsAffected = 0;
 
                         option1 = event.getOption("member");
@@ -480,14 +616,11 @@ public class Cowlendar extends ListenerAdapter {
     
                         if((getMembers()).contains(member)){
                             try {
-                                statement.executeUpdate("SET SQL_SAFE_UPDATES = 0;");
                                 statement.executeUpdate("DELETE FROM " + division + " WHERE memberName=\"" + member + "\"");
     
                                 resultSet = statement.executeQuery("SELECT ROW_COUNT();");
                                 resultSet.next();
                                 rowsAffected = (resultSet.getInt("ROW_COUNT()"));
-    
-                                statement.executeUpdate("SET SQL_SAFE_UPDATES = 1;");
     
                                 if(rowsAffected == 1){
                                     message = "Success! " + member + " has been removed from " + division + ".";
@@ -511,24 +644,20 @@ public class Cowlendar extends ListenerAdapter {
                     break;
 
                 case "get_member_divs":
-                    ArrayList<String> divisions = new ArrayList<>();
-                    String member;
                     option1 = event.getOption("member");
 
                     member = option1 != null ? option1.getAsString() : "";
 
                     if((member.isEmpty())){
-                        divisions = getMemberDivisions(username);
-                        message = "These are your divisions: \n" + divisions;
+                        variableDivisionsArray = getMemberDivisions(username);
+                        message = "These are your divisions: \n" + variableDivisionsArray;
                         embed.setColor(Color.LIGHT_GRAY);
                     } else {
-                        divisions = getMemberDivisions(member);
-                        message = "These are " + member + "'s divisions: \n" + divisions;
+                        variableDivisionsArray = getMemberDivisions(member);
+                        message = "These are " + member + "'s divisions: \n" + variableDivisionsArray;
                         embed.setColor(Color.LIGHT_GRAY);
                     }
             }
-            // System.out.println("Message is supposed to be: " + message);
-            // event.getHook().sendMessage(message).setEphemeral(true).queue();
         }
 
         embed.setFooter("@" + username + ": /" + command);
@@ -539,6 +668,48 @@ public class Cowlendar extends ListenerAdapter {
         event.getHook().sendMessageEmbeds(embed.build()).setEphemeral(true).queue();
 
         embed.clear();
+    }
+
+    public static String getFormattedTime(String time) throws Exception{
+        String[] timeList = time.split("-");
+        String[] timeOneSeperator = timeList[0].split(":");
+        String[] timeTwoSeperator = timeList[1].split(":");
+        String timeOneString;
+        String timeTwoString;
+        LocalTime localTimeObject;
+
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mma");
+
+        // adds a 0 to the beginning of the hour if it was forgotten
+        timeOneSeperator[0] = timeOneSeperator[0].length() != 1 ? timeOneSeperator[0] : "0" + timeOneSeperator[0];
+        timeTwoSeperator[0] = timeTwoSeperator[0].length() != 1 ? timeTwoSeperator[0] : "0" + timeTwoSeperator[0];
+
+        // removes space in between the minutes and the am/pm declaration if added
+        timeOneSeperator[1] = timeOneSeperator[1].replaceAll("\\s", "");
+        timeTwoSeperator[1] = timeTwoSeperator[1].replaceAll("\\s", "");
+
+        timeOneString = timeOneSeperator[0] + ":" + timeOneSeperator[1];
+        localTimeObject = LocalTime.parse(timeOneString.toUpperCase().replaceAll("\\s", ""), timeFormatter);
+
+        timeTwoString = timeTwoSeperator[0] + ":" + timeTwoSeperator[1];
+        localTimeObject = LocalTime.parse(timeTwoString.toUpperCase().replaceAll("\\s", ""), timeFormatter);
+
+        time = timeOneSeperator[0] + ":" + timeOneSeperator[1] + "-" + timeTwoSeperator[0] + ":" + timeTwoSeperator[1];
+
+        return time;
+    }
+
+    public static String getFormattedDate(String date) throws Exception{
+        date = date.replaceAll("/", "_");
+        date = date.replaceAll("-", "_");
+
+        String[] dateSeperator = date.split("_");
+        dateSeperator[0] = dateSeperator[0].length() != 1 ? dateSeperator[0] : "0" + dateSeperator[0];
+        dateSeperator[1] = dateSeperator[1].length() != 1 ? dateSeperator[1] : "0" + dateSeperator[1];
+
+        date = (dateSeperator[0] + "_" + dateSeperator[1] + "_" + dateSeperator[2]).toUpperCase();
+
+        return date;
     }
 
     public static ArrayList<String> getMemberDivisions(String username){
@@ -563,8 +734,6 @@ public class Cowlendar extends ListenerAdapter {
                 continue;
             }
         }
-
-        memberDivisions.remove("other");
 
         return memberDivisions;
     }
