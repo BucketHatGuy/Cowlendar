@@ -11,7 +11,7 @@ public class Connectors {
         public static void main(String[] args) throws Exception{
         Cowlendar.initializeDatabase();
 
-        JDA jda = (JDA) JDABuilder.createDefault(" ")
+        JDA jda = (JDA) JDABuilder.createDefault("")
             .enableIntents(GatewayIntent.MESSAGE_CONTENT)
             .setActivity(Activity.competing("CowTown ThrowDown"))
             .addEventListeners(new Cowlendar())
@@ -32,8 +32,9 @@ public class Connectors {
                 // jda.upsertCommand("add_div","add member to division").addOption(OptionType.STRING, "member", "name of member", true).addOption(OptionType.STRING, "division", "name of division (singular)", true).queue();
                 // jda.upsertCommand("remove_div","remove member from division").addOption(OptionType.STRING, "member", "name of member", true).addOption(OptionType.STRING, "division", "name of division (singular)", true).queue();
                 // jda.upsertCommand("get_member_divs","returns a list of divisions a member is in").addOption(OptionType.STRING, "member", "name of member", true).queue();
+                // jda.upsertCommand("export","export a division's data as a csv file").addOption(OptionType.STRING, "division", "name of division (singular)", true).queue();
 
-                // jda.deleteCommandById("1292615791916744754").queue();
+                // jda.deleteCommandById("1287615710415294476").queue();
                 // jda.deleteCommandById("1289022793085616244").queue();
             } catch(Exception e) {
                 e.printStackTrace();

@@ -1,17 +1,17 @@
 package roboticsattendance;
 
 import java.awt.Color;
-
+import java.io.FileWriter;
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.LocalTime;
 import java.time.Duration;
-
+import java.util.Collections;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -23,6 +23,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.dv8tion.jda.api.utils.FileUpload;
 
 
 public class Cowlendar extends ListenerAdapter {
@@ -657,6 +658,58 @@ public class Cowlendar extends ListenerAdapter {
                         message = "These are " + member + "'s divisions: \n" + variableDivisionsArray;
                         embed.setColor(Color.LIGHT_GRAY);
                     }
+
+                break;
+                    
+                case "export":
+                    try {
+                        String csvFilePath = "C:/Users/18163/Music/Cowlendar v2.0/Cowlendar.txt";
+                        File file = new File("C:/Users/18163/Music/Cowlendar v2.0/Cowlendar.txt");
+                        FileUpload fileUpload = FileUpload.fromData(file);
+                        FileWriter fileWriter = new FileWriter(csvFilePath);
+
+                        option1 = event.getOption("division");
+                        division = option1 != null ? option1.getAsString() : "";
+
+                        System.out.println("SELECT * FROM " + division + ";");
+
+                        resultSet = statement.executeQuery("SELECT * FROM " + division + ";");
+    
+                        // Get column names
+                        int columnCount = resultSet.getMetaData().getColumnCount();
+                        
+                        for (int i = 1; i <= columnCount; i++) {
+                            fileWriter.append(resultSet.getMetaData().getColumnName(i));
+                            if (i < columnCount) {
+                                fileWriter.append(",");
+                            }
+                        }
+                        fileWriter.append("\n");
+            
+                        // Get row data
+                        while (resultSet.next()) {
+                            for (int i = 1; i <= columnCount; i++) {
+                                fileWriter.append(resultSet.getString(i));
+                                if (i < columnCount) {
+                                    fileWriter.append(",");
+                                }
+                            }
+                            fileWriter.append("\n");
+                        }
+         
+                        fileWriter.close();
+
+                        message = "CSV file created successfully!";
+                        embed.setColor(Color.GREEN);
+
+                        event.getChannel().sendFiles(Collections.singleton(fileUpload)).queue();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        message = "There was a problem with exporting the data, please try again.";
+                        embed.setColor(Color.RED);
+                    }
+
+                break;
             }
         }
 
