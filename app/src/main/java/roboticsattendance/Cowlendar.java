@@ -128,74 +128,79 @@ public class Cowlendar extends ListenerAdapter {
                 break;
 
                 case "impersonate":
-                    option1 = event.getOption("date");
-                    date = option1 != null ? option1.getAsString() : "";
+                    if((getAdmins()).contains(username)){
+                        option1 = event.getOption("date");
+                        date = option1 != null ? option1.getAsString() : "";
 
-                    option2 = event.getOption("time");
-                    time = option2 != null ? option2.getAsString() : "";
+                        option2 = event.getOption("time");
+                        time = option2 != null ? option2.getAsString() : "";
 
-                    option3 = event.getOption("member");
-                    member = option3 != null ? option3.getAsString() : "";
+                        option3 = event.getOption("member");
+                        member = option3 != null ? option3.getAsString() : "";
 
-                    date = date != "" ? date : currentDate.format(dateFormatter).toString();
-                    divisionsAccountedFor = 0;
+                        date = date != "" ? date : currentDate.format(dateFormatter).toString();
+                        divisionsAccountedFor = 0;
 
-                    try {
-                        date = getFormattedDate(date);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                        try {
+                            date = getFormattedDate(date);
+                        } catch (Exception e) {
+                            e.printStackTrace();
 
-                        message = "Error: Invalid date format. Check the date you entered and try again.";
-                        embed.setColor(Color.RED);
-                        formatError = true;
-                    }
-
-                    try {
-                        time = getFormattedTime(time);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-
-                        message = "Error: Invalid time format. Check the time you entered and try again.";
-                        embed.setColor(Color.RED);
-                        formatError = true;
-                    }
-
-                    if(!getMembers().contains(member)){
-                        message = "Error: Member is not in the database. Check the member you entered and try again.";
-                        embed.setColor(Color.RED);
-                        formatError = true;
-                    } else {
-                        memberDivisionsArray = getMemberDivisions(member);
-                    }
-
-                    if(!formatError){
-                        if(updatedDatesSet.contains(date)){
-                            for (String divisionInArray : memberDivisionsArray) {
-                                try {
-                                    statement.executeUpdate("UPDATE " + divisionInArray + " SET " + date + " = '" + time +"' WHERE memberName='" + member + "';");
-                                    divisionsAccountedFor++;
-                                } catch (Exception e) {
-                                    continue;
-                                }
-                            }
-            
-                            if(divisionsAccountedFor == 0){
-                                message = "Error: Unknown. If this persists, contact Jose probably lol.";
-                                embed.setColor(Color.RED);
-                            } else {
-                                message = "Success! You have logged in as \"" + member + "\" for the meet on " + date;
-                                embed.setColor(Color.GREEN);
-                            }
-
-                        } else {
-                            message = "Error: Invalid date. Check the date you entered and try again.";
+                            message = "Error: Invalid date format. Check the date you entered and try again.";
                             embed.setColor(Color.RED);
+                            formatError = true;
                         }
+
+                        try {
+                            time = getFormattedTime(time);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+
+                            message = "Error: Invalid time format. Check the time you entered and try again.";
+                            embed.setColor(Color.RED);
+                            formatError = true;
+                        }
+
+                        if(!getMembers().contains(member)){
+                            message = "Error: Member is not in the database. Check the member you entered and try again.";
+                            embed.setColor(Color.RED);
+                            formatError = true;
+                        } else {
+                            memberDivisionsArray = getMemberDivisions(member);
+                        }
+
+                        if(!formatError){
+                            if(updatedDatesSet.contains(date)){
+                                for (String divisionInArray : memberDivisionsArray) {
+                                    try {
+                                        statement.executeUpdate("UPDATE " + divisionInArray + " SET " + date + " = '" + time +"' WHERE memberName='" + member + "';");
+                                        divisionsAccountedFor++;
+                                    } catch (Exception e) {
+                                        continue;
+                                    }
+                                }
+                
+                                if(divisionsAccountedFor == 0){
+                                    message = "Error: Unknown. If this persists, contact Jose probably lol.";
+                                    embed.setColor(Color.RED);
+                                } else {
+                                    message = "Success! You have logged in as \"" + member + "\" for the meet on " + date;
+                                    embed.setColor(Color.GREEN);
+                                }
+
+                            } else {
+                                message = "Error: Invalid date. Check the date you entered and try again.";
+                                embed.setColor(Color.RED);
+                            }
+                        }
+                    } else {
+                        message = "Error: Permission denied. Only admins are allowed to manipulate member data.";
+                        embed.setColor(Color.RED);
                     }
                     
                 break;
 
-                case "percent":
+                case "get_percent":
                     ArrayList<Double> attendanceArray = new ArrayList<>();
                     ArrayList<String> divisionDatesArray = new ArrayList<>();
                     Double totalNumber = 0.0;
@@ -369,13 +374,13 @@ public class Cowlendar extends ListenerAdapter {
                     
                     break;
 
-                case "member_list":
+                case "get_members":
                     message = "These are all the members: ";
                     embed.setDescription(getMembers().toString());
                     embed.setColor(Color.LIGHT_GRAY);
                     break;
 
-                case "division_list":
+                case "get_divs":
                     message = "These are all the divisions: ";
                     embed.setDescription(getAllDivisions().toString());
                     embed.setColor(Color.LIGHT_GRAY);
@@ -468,6 +473,38 @@ public class Cowlendar extends ListenerAdapter {
                     }
     
                     break;
+
+                case "add_date_default":
+                    if((getAdmins()).contains(username)){
+                            String[] timeFrameList = {"3:00pm-4:30pm","4:30pm-5:30pm","4:30pm-6:00pm"};
+                            String[] divisionList = {"allteam","build","programming"};
+                            String timeFrame = "";
+
+                            for (int i = 0; i < 3; i++) {
+                                System.out.println("hey guys");
+                                try {
+                                    date = currentDate.format(dateFormatter).toString();
+                                    timeFrame = getFormattedTime(timeFrameList[i]);
+                                    division = divisionList[i];
+
+                                    statement.executeUpdate("ALTER TABLE " + division + " ADD " + date + " varchar(50);");
+                                    statement.executeUpdate("UPDATE " + division + " SET " + date + " = '" + timeFrame + "' WHERE memberName='time';");
+                                    message = "Success! " + date + " has been added to " + division;
+                                    embed.setColor(Color.GREEN);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    System.out.println("We're here");
+                                }
+                            }
+
+                            message = "Success! Today has been added.";
+                            embed.setColor(Color.GREEN);
+
+                    } else {
+                            message = "Error: Permission denied. Please contact a mentor to change dates.";
+                            embed.setColor(Color.RED);
+                    }
+                break;
 
                 case "remove_date":
                     if((getAdmins()).contains(username)){
@@ -663,8 +700,8 @@ public class Cowlendar extends ListenerAdapter {
                     
                 case "export":
                     try {
-                        String csvFilePath = "C:/Users/18163/Music/Cowlendar v2.0/Cowlendar.txt";
-                        File file = new File("C:/Users/18163/Music/Cowlendar v2.0/Cowlendar.txt");
+                        String csvFilePath = "C:/Users/ace/Music/Cowlendar v2.0/Cowlendar.txt";
+                        File file = new File(csvFilePath);
                         FileUpload fileUpload = FileUpload.fromData(file);
                         FileWriter fileWriter = new FileWriter(csvFilePath);
 
@@ -709,6 +746,10 @@ public class Cowlendar extends ListenerAdapter {
                         embed.setColor(Color.RED);
                     }
 
+                break;
+                case "calendar":
+                    message = "__You can find the team's schedule and events here:__\nhttps://calendar.google.com/calendar/embed?color=%239a9cff&src=ctcrobotics@fortosage.net";
+                    embed.setColor(Color.GRAY);
                 break;
             }
         }
@@ -896,7 +937,7 @@ public class Cowlendar extends ListenerAdapter {
             Class.forName("com.mysql.cj.jdbc.Driver");
             connection = DriverManager.getConnection(
                 "",
-                "", ""
+                "root", ""
             );
 
             connection.setNetworkTimeout(Executors.newFixedThreadPool(1), 0);
