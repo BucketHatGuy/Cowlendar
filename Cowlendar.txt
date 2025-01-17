@@ -1,5 +1,36 @@
-memberName
-adamn_redneck
-kojoh
-t_wezzy
-time
+memberName,10_08_24,10_15_24,10_22_24,10_29_24,11_12_24,12_10_24,01_04_25
+kojoh,03:00pm-06:00pm,02:20pm-06:00pm,03:00pm-06:00pm,03:00pm-06:00pm,03:00pm-06:00pm,02:20pm-06:00pm,10:00am-03:00pm
+adamn_redneck,03:30pm-07:00pm,03:00pm-06:00pm,03:00pm-06:00pm,03:00pm-06:00pm,03:00pm-06:00pm,03:00pm-04:30pm,10:00am-03:00pm
+brooklynn0454,null,null,03:00pm-06:00pm,03:00pm-04:30pm,03:00pm-06:00pm,03:00pm-04:30pm,null
+robo2001,03:00pm-06:00pm,03:30pm-06:00pm,03:00pm-04:30pm,03:00pm-06:00pm,03:00pm-06:00pm,03:00pm-04:30pm,10:00am-03:00pm
+jacoblaw21,03:00pm- 05:30pm,03:00pm-06:45pm,03:00pm-06:00pm,03:00pm-06:00pm,03:00pm-06:00pm,03:00pm-04:30pm,10:00am-03:00pm
+pokeblox_313373,03:30pm- 04:30pm,03:00pm-04:30pm,03:00pm-04:30pm,03:00pm-04:30pm,03:00pm-06:00pm,null,10:00am-03:00pm
+micro6677,03:00pm-04:30pm,03:00pm-04:30pm,03:00pm-04:30pm,null,03:00pm-06:00pm,03:00pm-04:30pm,10:00pm-03:00pm
+sleepy_hollow184,03:00pm-06:00pm,03:00pm-05:30pm,03:00pm-05:00pm,03:40pm-06:00pm,03:00pm-06:00pm,03:00pm-04:30pm,10:00am-03:00pm
+laiyla_bananas,null,null,03:00pm-06:00pm,null,03:00pm-06:00pm,03:30pm-04:00pm,10:00am-03:00pm
+lilly_flower,null,null,null,03:00pm-04:00pm,03:00pm-06:00pm,03:00pm-04:30pm,10:00am-03:00pm
+whimsicalwarrior,03:00pm-05:30pm,02:30pm-05:30pm,03:00pm-06:00pm,02:20pm-05:30pm,03:00pm-06:00pm,02:20pm-04:00pm,10:00am-03:00pm
+hunttsmen,03:00pm-06:00pm,03:00pm-06:00pm,03:00pm-06:00pm,null,null,null,null
+nim8407,03:00pm-05:30pm,03:00pm-04:30pm,03:00pm-06:00pm,03:00pm-06:00pm,03:00pm-06:00pm,03:00pm- 04:30pm,10:00am-03:00pm
+noahhinklesirbigbrain_75407,null,null,null,03:00pm-05:15pm,03:00pm-06:00pm,null,null
+.coooll,null,null,null,null,null,null,null
+meddlingmoth,03:00pm-06:00pm,03:00pm-04:30pm,03:00pm-05:30pm,03:00pm-04:00pm,03:00pm-06:00pm,03:00pm-04:30pm,10:00am-03:00pm
+thomasduh,null,null,null,null,null,null,10:00am-03:00pm
+__maxr__,03:00pm-06:00pm,03:00pm-06:00pm,02:30pm-06:00pm,03:00pm-06:00pm,03:00pm-06:00pm,03:00pm-06:00pm,10:00am-03:00pm
+rockets,null,null,null,null,null,null,null
+oldfroglady,03:00pm-04:30pm,null,null,null,null,null,null
+karate009,03:00pm-05:30pm,03:00pm-05:30pm,03:00pm-04:30pm,03:00pm-04:00pm,03:00pm-06:00pm,03:00pm-04:30pm,10:00am-03:00pm
+electroenjoyer,03:00pm-03:30pm,null,null,null,null,null,null
+t_wezzy,02:20pm-07:00pm,02:20pm-08:00pm,02:30pm-06:00pm,02:20pm-04:30pm,03:00pm-06:00pm,02:20pm-06:00pm,10:00am-03:00pm
+noahg32714,03:00pm- 06:00pm,03:00pm-06:00pm,03:00pm-06:00pm,03:00pm-06:00pm,03:00pm-06:00pm,03:00pm-06:00pm,10:00am-03:00pm
+spongemop,null,null,null,null,null,null,null
+x_bigfoot_25x,null,null,null,null,03:00pm-06:00pm,null,10:00am-03:00pm
+harrisondowning,03:00pm-05:30pm,03:00pm-05:30pm,03:00pm-06:00pm,03:00pm-06:00pm,03:00pm-06:00pm,03:00pm-04:30pm,10:00am-03:00pm
+agent_hudy,03:00pm-04:30pm,03:00pm-06:00pm,null,null,03:00pm-06:00pm,03:00pm-04:30pm,10:43am-03:00pm
+puglord73,03:00pm-05:30pm,null,null,null,null,03:00pm-04:30pm,10:42am-03:00pm
+hatu404,02:20pm-04:00pm,null,03:07pm-04:00pm,03:05pm-04:00pm,03:00pm-06:00pm,03:00pm-04:30pm,null
+time,03:00pm-04:30pm,02:30pm-04:30pm,03:00pm-04:30pm,03:00pm-04:30pm,03:00pm-04:30pm,03:00pm-04:30pm,10:00am-03:00pm
+beachtrooper8,null,null,null,03:00pm-06:00pm,03:00pm-06:00pm,null,10:00am-03:00pm
+crimpyflame2529,null,02:30pm-06:00pm,03:00pm-06:00pm,null,03:00pm-06:00pm,null,10:34am-03:00pm
+.xcosmos,null,null,03:00pm-04:30pm,null,03:00pm-06:00pm,03:00pm-04:30pm,null
+dylan090559,null,null,null,null,03:00pm-06:00pm,03:00pm-04:30pm,null

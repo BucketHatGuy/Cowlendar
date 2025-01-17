@@ -747,6 +747,7 @@ public class Cowlendar extends ListenerAdapter {
                     }
 
                 break;
+
                 case "calendar":
                     message = "__You can find the team's schedule and events here:__\nhttps://calendar.google.com/calendar/embed?color=%239a9cff&src=ctcrobotics@fortosage.net";
                     embed.setColor(Color.GRAY);
@@ -770,7 +771,6 @@ public class Cowlendar extends ListenerAdapter {
         String[] timeTwoSeperator = timeList[1].split(":");
         String timeOneString;
         String timeTwoString;
-        LocalTime localTimeObject;
 
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mma");
 
@@ -783,10 +783,10 @@ public class Cowlendar extends ListenerAdapter {
         timeTwoSeperator[1] = timeTwoSeperator[1].replaceAll("\\s", "");
 
         timeOneString = timeOneSeperator[0] + ":" + timeOneSeperator[1];
-        localTimeObject = LocalTime.parse(timeOneString.toUpperCase().replaceAll("\\s", ""), timeFormatter);
+        LocalTime.parse(timeOneString.toUpperCase().replaceAll("\\s", ""), timeFormatter);
 
         timeTwoString = timeTwoSeperator[0] + ":" + timeTwoSeperator[1];
-        localTimeObject = LocalTime.parse(timeTwoString.toUpperCase().replaceAll("\\s", ""), timeFormatter);
+        LocalTime.parse(timeTwoString.toUpperCase().replaceAll("\\s", ""), timeFormatter);
 
         time = timeOneSeperator[0] + ":" + timeOneSeperator[1] + "-" + timeTwoSeperator[0] + ":" + timeTwoSeperator[1];
 
@@ -936,7 +936,7 @@ public class Cowlendar extends ListenerAdapter {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             connection = DriverManager.getConnection(
-                "",
+                "jdbc:mysql://localhost:3306/mydb?autoReconnect=true",
                 "root", ""
             );
 

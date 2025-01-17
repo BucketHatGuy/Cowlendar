@@ -13,7 +13,7 @@ public class Connectors {
 
         JDA jda = (JDA) JDABuilder.createDefault("")
             .enableIntents(GatewayIntent.MESSAGE_CONTENT)
-            .setActivity(Activity.competing("CowTown ThrowDown"))
+            .setActivity(Activity.customStatus("I LOVE METALCOW!!!"))
             .addEventListeners(new Cowlendar())
             .build().awaitReady();
 
