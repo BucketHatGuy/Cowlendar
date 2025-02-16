@@ -32,3 +32,8 @@ for anyone to see.
 
 Tracking attendance shouldn't be that difficult. With it being complicated, mentors and students are both taking time out of the build season that could be spend actually learning
 about robotics. This discord bot makes the perfect solution for logging in to be as simple and necessary as possible so that time can be spent more valuably.
+
+
+*The Logo*
+
+![Untitled design](https://github.com/user-attachments/assets/a73da4f6-dfaa-44ca-b609-2128c8198dba)
